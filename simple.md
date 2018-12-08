@@ -7,6 +7,7 @@
 - git diff file:查看文件的修改内容
 - git log: 查看历史记录
 ：--pretty=oneline: 简化输出信息
+- git log --graph --pretty=oneline --abbrev-commit: 查看分支的合并情况
 - git reset --hard HEAD^: 回退到上一个版本
 - git reset --hard 版本号
 - git reset HEAD <file>可以把暂存区的修改撤销掉（unstage），重新放回工作区：
@@ -15,6 +16,16 @@
 一种是文件自修改后还没有被放到暂存区，撤销修改就回到和版本库一模一样的状态；
 一种是已经添加到暂存区后，又作了修改，现在，撤销修改就回到添加到暂存区后的状态。
 ：-- 很重要，没有--，就变成了“切换到另一个分支”的命令。
+- git checkout -b dev: -b参数表示创建并切换到分支dev，相当于以下命令
+```git
+git branch dev
+git checkout dev
+```
+- git branch: 无分支名参数时，会列出所有分支，当前分支前面标一个*号，有分支名参数就切换到分支。
+- git branch -d branchName: 删除分支branchName.
+- git branch -D name:强行删除分支
+- git merge dev: 合并dev分支到当前分支。
+
 ### 删除文件
     git add test.txt
     git commit -m "add test.txt"
@@ -72,3 +83,57 @@ Warning: Permanently added 'github.com' (RSA) to the list of known hosts.
 关联后，使用命令git push -u origin master第一次推送master分支的所有内容；
 
 此后，每次本地提交后，只要有必要，就可以使用命令git push origin master推送最新修改；
+### 从远程库克隆
+git clone git@github.com:acktomas/notes.git
+## 分支管理
+### bug分支
+1. git stash：把当前工作现场“储藏”起来，等以后恢复现场后继续工作。
+2. 确定要在哪个分支上修复bug，假定需要在master上
+    git checkout master
+3. git checkout -b issue-101
+4. 修复
+git add read.py
+git commit -m "fix bug 101"
+5. git checkout master
+6. git merge --no-ff -m "merged bug fix 101" issue-101
+7. git checkout dev
+8. git stash list
+9. git stash 内容恢复： git stash apply或git stash pop
+10. git stash pop
+11. git stash list
+12. git stash apply stash@{0}
+#### 推送分支
+推送分支，就是把该分支上的所有本地提交推送到远程库。推送时，要指定本地分支，这样，Git就会把该分支推送到远程库对应的远程分支上：
+
+$ git push origin master
+如果要推送其他分支，比如dev，就改成：
+
+$ git push origin dev
+但是，并不是一定要把本地分支往远程推送，那么，哪些分支需要推送，哪些不需要呢？
+
+- master分支是主分支，因此要时刻与远程同步；
+
+- dev分支是开发分支，团队所有成员都需要在上面工作，所以也需要与远程同步；
+
+- bug分支只用于在本地修复bug，就没必要推到远程了，除非老板要看看你每周到底修复了几个bug；
+
+- feature分支是否推到远程，取决于你是否和你的小伙伴合作在上面开发。
+
+总之，就是在Git中，分支完全可以在本地自己藏着玩，是否推送，视你的心情而定！
+## 标签管理
+### 创建标签
+git tag V1.0
+#### 查找历史提交的commit id
+git log --pretty=oneline --abbrev-commit  :
+#### 给某个commit id 打标签
+git tag v0.9 f52c633
+#### 查看标签信息
+git show <tagname>
+#### 还可以创建带有说明的标签，用-a指定标签名，-m指定说明文字：
+$ git tag -a v0.1 -m "version 0.1 released" 1094adb
+####  注意：
+标签总是和某个commit挂钩。如果这个commit既出现在master分支，又出现在dev分支，那么在这两个分支上都可以看到这个标签。
+- 命令git push origin <tagname>可以推送一个本地标签；
+- 命令git push origin --tags可以推送全部未推送过的本地标签；
+- 命令git tag -d <tagname>可以删除一个本地标签；
+- 命令git push origin :refs/tags/<tagname>可以删除一个远程标签。
